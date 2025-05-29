@@ -1,0 +1,61 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+
+model Room {
+  id        String   @id @default(uuid())
+  roomName  String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  inviteCode String @unique
+  
+  host      Member   @relation("HostedRoom", fields: [hostId], references: [id], onDelete: Cascade)
+  hostId    String   @unique
+  
+  members   Member[] @relation("RoomMembers")
+  
+  song_queue Song[]
+}
+
+model Member {
+  id        String   @id @default(uuid())
+  userId    String   @unique
+  createdAt DateTime @default(now())
+  
+  hostedRoom Room?   @relation("HostedRoom")
+  
+  room      Room?    @relation("RoomMembers", fields: [roomId], references: [id])
+  roomId    String?
+  
+  @@unique([id, roomId])
+}
+
+model Song {
+  id            String  @id @default(uuid())
+  likes         Int     @default(0)
+  dislikes      Int     @default(0)
+  
+  spotifyId     String?
+  title         String?
+  artist        String?
+  albumArt      String?
+  
+  room          Room    @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  roomId        String
+  
+  addedBy       String?
+  addedAt       DateTime @default(now())
+}

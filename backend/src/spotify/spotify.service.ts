@@ -1,10 +1,14 @@
 import { Injectable, Req } from '@nestjs/common';
 import { SpotifyApi } from '@spotify/web-api-ts-sdk';
+import { PrismaService } from 'src/prisma/prisma.service';
 import { SessionService } from 'src/session/session.service';
 
 @Injectable()
 export class SpotifyService {
-  constructor(private readonly sessionService: SessionService) {}
+  constructor(
+    private readonly sessionService: SessionService,
+    private prisma: PrismaService,
+  ) {}
 
   async acceptUserToken(request) {
     console.log(request.body);
@@ -64,7 +68,12 @@ export class SpotifyService {
     return songQueue;
   }
 
-  async addSongToQueue() {}
+  async addSongToRoomQueue(session) {
+    const sdk: SpotifyApi = SpotifyApi.withAccessToken(
+      process.env.SPOTIFY_CLIENT!,
+      session.session,
+    );
+  }
 
   async suggestSong() {}
 

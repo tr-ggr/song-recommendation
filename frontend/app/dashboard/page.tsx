@@ -4,12 +4,25 @@ import axios from "axios";
 import { FormEvent, useState, useEffect } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
+import { io } from "socket.io-client";
 
 export default function Dashboard() {
   const [tracks, setTracks] = useState<PartialSearchResult["tracks"]>();
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [currentlyPlaying, setCurrentlyPlaying] = useState<any>(null);
   const [queue, setQueue] = useState<any>(null);
+
+  const socket = io("http://localhost:9000", {
+    withCredentials: true,
+    reconnectionDelayMax: 10000,
+    auth: {
+      token: localStorage.getItem("jwt_token"),
+    },
+  });
+
+  socket.on("connect", () => {
+    console.log("Successfully connected!");
+  });
 
   const router = useRouter();
   async function checkCurrentlyPlaying() {

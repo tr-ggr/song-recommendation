@@ -7,10 +7,11 @@ import { SessionModule } from './session/session.module';
 import { AuthModule } from './auth/auth.module';
 import { RoomGateway } from './room/room.gateway';
 import { RoomModule } from './room/room.module';
+import { PrismaService } from './prisma/prisma.service';
 
 @Module({
   imports: [SpotifyModule, ConfigModule.forRoot(), SessionModule, AuthModule, RoomModule],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [AppService, PrismaService],
 })
 export class AppModule {}
