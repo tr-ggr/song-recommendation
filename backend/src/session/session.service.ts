@@ -1,11 +1,12 @@
-import { Body, Injectable } from '@nestjs/common';
+import { Body, Injectable, Scope } from '@nestjs/common';
 
-@Injectable()
+@Injectable({ scope: Scope.DEFAULT })
 export class SessionService {
-  private sessions = new Map<string, any>();
+  private static readonly sessions = new Map<string, any>();
 
   checkSession(access_token) {
-    const result = this.sessions.get(access_token);
+    const result = SessionService.sessions.get(access_token);
+    console.log(SessionService.sessions);
 
     if (result) {
       return result;
@@ -15,10 +16,10 @@ export class SessionService {
   }
 
   addSession(body) {
-    this.sessions.set(body.access_token, body);
+    SessionService.sessions.set(body.access_token, body);
   }
 
   removeSession(access_token) {
-    this.sessions.delete(access_token);
+    SessionService.sessions.delete(access_token);
   }
 }

@@ -1,19 +1,18 @@
 import { Injectable } from '@nestjs/common';
+import { Member, Room } from 'generated/prisma';
 import { customAlphabet, nanoid } from 'nanoid';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { Room } from 'src/shared/interfaces/room.interface';
 
 @Injectable()
 export class RoomService {
   constructor(private prisma: PrismaService) {}
-  private rooms: Room[] = [];
 
   generateInviteCode() {
     const nanoid = customAlphabet('ABCDEFGHIJKLMNOPQRSTUVWXYZ', 6);
     return nanoid();
   }
 
-  async addRoom(roomId: string, userId: string): Promise<string> {
+  async addRoom(roomName: string, userId: string): Promise<Room | string> {
     try {
       const user = await this.prisma.member.findFirst({
         where: {
@@ -21,23 +20,28 @@ export class RoomService {
         },
       });
 
-      await this.prisma.room.create({
+      console.log(roomName);
+
+      let inviteCode = this.generateInviteCode();
+
+      let createdRoom = await this.prisma.room.create({
         data: {
-          roomName: roomId,
-          inviteCode: this.generateInviteCode(),
+          roomName: roomName,
+          inviteCode: inviteCode,
           host: {
-            connect: { id: user?.id }, // Connect using the user's ID
+            connect: { id: user?.id },
           },
-          // Also add the host as a member of the room
           members: {
             connect: { id: user?.id },
           },
         },
       });
 
-      return 'Successfully created room!';
+      console.log(createdRoom);
+
+      return createdRoom;
     } catch (error) {
-      return `Error: ${error}`;
+      return error;
     }
   }
 
@@ -55,67 +59,44 @@ export class RoomService {
     }
   }
 
-  async joinRoom(roomId: string, userId: string): Promise<boolean> {
+  async leaveRoom(userId: string): Promise<string> {
+    try {
+      await this.prisma.member.update({
+        where: {
+          userId: userId,
+        },
+        data: {
+          roomId: null,
+        },
+      });
+
+      return 'Successful!';
+    } catch (err) {
+      return `Error: ${err}`;
+    }
+  }
+
+  async joinRoom(inviteCode: string, userId: string): Promise<Room | string> {
+    console.log(inviteCode, userId);
     try {
       const updatedMember = await this.prisma.member.upsert({
         where: { userId: userId },
         create: {
           userId: userId,
-          room: { connect: { roomName: roomId } },
+          room: { connect: { inviteCode: inviteCode } },
         },
         update: {
-          room: { connect: { roomName: roomId } },
+          room: { connect: { inviteCode: inviteCode } },
         },
         include: { room: true },
       });
-      return true;
+
+      const room = await this.prisma.room.findUnique({
+        where: { inviteCode: inviteCode },
+      });
+      return room!;
     } catch (err) {
-      console.log(err);
-      return false;
+      return err;
     }
-  }
-
-  async checkIfRoomExists(roomId: string): Promise<boolean> {
-    if (this.rooms.length === 0) {
-      return false;
-    }
-
-    let room = await this.rooms.filter((value) => {
-      return value.roomId == roomId;
-    });
-
-    console.log(room);
-
-    if (room.length > 0) {
-      return true;
-    } else {
-      return false;
-    }
-  }
-
-  async checkIfRoomHasMember(
-    roomId: string,
-    client: string,
-  ): Promise<Room | null> {
-    let room = this.rooms.find((value) => {
-      return value.roomId === roomId;
-    });
-
-    console.log(room);
-
-    if (
-      room &&
-      !room?.members.find((value) => {
-        value === client;
-      })
-    ) {
-      return room;
-    } else {
-      return null;
-    }
-  }
-
-  async getAllRooms(): Promise<Room[]> {
-    return this.rooms;
   }
 }

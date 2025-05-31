@@ -26,7 +26,6 @@ export class SpotifyAuthGuard implements CanActivate {
       throw new UnauthorizedException('Invalid session');
     }
 
-    // Add session to request for use in controllers
     request.session = session;
 
     return true;

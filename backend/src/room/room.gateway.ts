@@ -6,7 +6,6 @@ import {
 } from '@nestjs/websockets';
 import { Server } from 'socket.io';
 import { RoomService } from './room.service';
-import { Room } from 'src/shared/interfaces/room.interface';
 import { SpotifyService } from 'src/spotify/spotify.service';
 import { PrismaService } from 'src/prisma/prisma.service';
 
@@ -29,19 +28,7 @@ export class RoomGateway implements OnModuleInit {
   onModuleInit() {
     this.server.on('connection', async (socket) => {
       console.log(`Client connected: ${socket.id}`);
-      console.log(socket);
-
-      const member = await this.prisma.member.upsert({
-        where: {
-          userId: socket.handshake.auth.token,
-        },
-        create: {
-          userId: socket.handshake.auth.token,
-        },
-        update: {},
-      });
-
-      console.log(member);
+      // console.log(socket);
 
       socket.on('disconnect', () => {
         console.log(`Client disconnected: ${socket.id}`);
@@ -76,7 +63,7 @@ export class RoomGateway implements OnModuleInit {
     await this.server.emit('create_room', {
       msg: 'Create Room Status',
       response: response,
-      rooms: await this.roomService.getAllRooms(),
+      // rooms: await this.roomService.getAllRooms(),
     });
   }
 
@@ -106,25 +93,25 @@ export class RoomGateway implements OnModuleInit {
     }
   }
 
-  @SubscribeMessage('send_song_suggestion')
-  async handleSendSongSuggestion(client: any, payload: any) {
-    const parsedPayload = JSON.parse(payload);
-    console.log(parsedPayload);
-    let response = await this.roomService.checkIfRoomHasMember(
-      parsedPayload.roomName,
-      client.handshake.auth.token,
-    );
+  // @SubscribeMessage('send_song_suggestion')
+  // async handleSendSongSuggestion(client: any, payload: any) {
+  //   const parsedPayload = JSON.parse(payload);
+  //   console.log(parsedPayload);
+  //   let response = await this.roomService.checkIfRoomHasMember(
+  //     parsedPayload.roomName,
+  //     client.handshake.auth.token,
+  //   );
 
-    if (response) {
-      this.server.to(response.roomId).emit('send_song_suggestion', {
-        msg: 'Send Song Suggestion',
-        response: parsedPayload.message,
-      });
-    } else {
-      this.server.emit('send_song_suggestion', {
-        msg: 'Join Room Status',
-        response: response,
-      });
-    }
-  }
+  //   if (response) {
+  //     this.server.to(response.roomId).emit('send_song_suggestion', {
+  //       msg: 'Send Song Suggestion',
+  //       response: parsedPayload.message,
+  //     });
+  //   } else {
+  //     this.server.emit('send_song_suggestion', {
+  //       msg: 'Join Room Status',
+  //       response: response,
+  //     });
+  //   }
+  // }
 }

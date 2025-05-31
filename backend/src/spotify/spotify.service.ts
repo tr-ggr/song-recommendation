@@ -25,6 +25,17 @@ export class SpotifyService {
       return { message: 'Invalid!' };
     } else {
       //   console.log('valid');
+      const member = await this.prisma.member.upsert({
+        where: {
+          userId: request.body.access_token,
+        },
+        create: {
+          userId: request.body.access_token,
+        },
+        update: {},
+      });
+
+      console.log(member);
       return {
         message: 'Successfully logged in!',
         access_token: request.body.access_token,
