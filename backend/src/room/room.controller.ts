@@ -27,8 +27,22 @@ export class RoomController {
   }
 
   @UseGuards(SpotifyAuthGuard)
+  @Get('/current')
+  GetCurrentRoom(@Req() request) {
+    console.log(request.session.access_token);
+    return this.roomService.getRoom(request.session.access_token);
+  }
+
+  @UseGuards(SpotifyAuthGuard)
   @Post('/leave-room')
   LeaveRoom(@Req() request) {
+    console.log(request.session.access_token);
+    return this.roomService.leaveRoom(request.session.access_token);
+  }
+
+  @UseGuards(SpotifyAuthGuard)
+  @Get('/member')
+  GetRoomMembers(@Req() request) {
     console.log(request.session.access_token);
     return this.roomService.leaveRoom(request.session.access_token);
   }

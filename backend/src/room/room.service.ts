@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { Member, Room } from 'generated/prisma';
 import { customAlphabet, nanoid } from 'nanoid';
+import { stringify } from 'querystring';
 import { PrismaService } from 'src/prisma/prisma.service';
 
 @Injectable()
@@ -95,6 +96,33 @@ export class RoomService {
         where: { inviteCode: inviteCode },
       });
       return room!;
+    } catch (err) {
+      return err;
+    }
+  }
+
+  async getRoom(userId: string) {
+    console.log(userId);
+    try {
+      let user = await this.prisma.member.findUnique({
+        where: { userId: userId },
+      });
+
+      return user?.roomId;
+    } catch (err) {
+      return err;
+    }
+  }
+
+  async getRoomMembers(roomName: string) {
+    try {
+      let room = this.prisma.room.findUnique({
+        where: {
+          roomName: roomName,
+        },
+      });
+
+      return room.members;
     } catch (err) {
       return err;
     }
