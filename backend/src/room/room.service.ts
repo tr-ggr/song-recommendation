@@ -3,10 +3,14 @@ import { Member, Room } from 'generated/prisma';
 import { customAlphabet, nanoid } from 'nanoid';
 import { stringify } from 'querystring';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { SpotifyService } from 'src/spotify/spotify.service';
 
 @Injectable()
 export class RoomService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private spotifyService: SpotifyService,
+  ) {}
 
   generateInviteCode() {
     const nanoid = customAlphabet('ABCDEFGHIJKLMNOPQRSTUVWXYZ', 6);
@@ -62,13 +66,17 @@ export class RoomService {
 
   async leaveRoom(userId: string): Promise<string> {
     try {
-      await this.prisma.member.update({
+      let user = await this.prisma.member.update({
         where: {
           userId: userId,
         },
         data: {
           roomId: null,
         },
+      });
+
+      await this.prisma.room.delete({
+        where: { hostId: user.id },
       });
 
       return 'Successful!';
@@ -101,16 +109,39 @@ export class RoomService {
     }
   }
 
+  async getCurrentlyPlayingHost(userId: string) {
+    let currentSong = this.spotifyService.getCurrentPlayback(userId);
+    return currentSong;
+  }
+
   async getRoom(userId: string) {
-    console.log(userId);
     try {
-      let user = await this.prisma.member.findUnique({
+      const user = await this.prisma.member.findUnique({
         where: { userId: userId },
       });
 
-      return user?.roomId;
+      if (!user || !user.roomId) {
+        return null;
+      }
+
+      const room = await this.prisma.room.findUnique({
+        where: { id: user.roomId },
+        include: {
+          host: true,
+          members: true,
+        },
+      });
+
+      console.log(room);
+
+      if (!room) {
+        return null;
+      }
+
+      return { room, isHost: user.id == room.hostId };
     } catch (err) {
-      return err;
+      console.error('Error getting room:', err);
+      throw err;
     }
   }
 

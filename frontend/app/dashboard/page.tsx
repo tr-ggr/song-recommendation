@@ -60,29 +60,9 @@ export default function Dashboard() {
     socket.on("connect", () => {
       console.log("Successfully connected!");
     });
-
-    // Check current playback on initial load
-    checkCurrentlyPlaying();
   }, []);
 
   const router = useRouter();
-
-  async function checkCurrentlyPlaying() {
-    setIsLoading(true);
-    axios
-      .get("http://127.0.0.1:4000/spotify/currently-playing")
-      .then((response) => {
-        setCurrentlyPlaying(response.data);
-        console.log(response.data);
-      })
-      .catch((error) => {
-        console.log(error);
-      })
-      .finally(() => {
-        setIsLoading(false);
-      });
-  }
-
   async function handleJoinRoom() {
     setIsLoading(true);
 
@@ -94,6 +74,7 @@ export default function Dashboard() {
         console.log(response.data);
         setJoinDialogOpen(false);
         setInviteCode("");
+        router.push("/room");
       })
       .catch((error) => {
         console.log(error);
@@ -105,7 +86,7 @@ export default function Dashboard() {
 
   async function handleCreateRoom() {
     setIsLoading(true);
-
+    console.log(roomName);
     axios
       .post("http://127.0.0.1:4000/room/create", {
         roomName: roomName,
@@ -114,6 +95,7 @@ export default function Dashboard() {
         console.log(response.data);
         setCreateDialogOpen(false);
         setRoomName("");
+        router.push("/room");
       })
       .catch((error) => {
         console.log(error);

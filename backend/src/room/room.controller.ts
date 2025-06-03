@@ -17,7 +17,7 @@ export class RoomController {
   }
 
   @UseGuards(SpotifyAuthGuard)
-  @Post('/create')
+  @Get('/create')
   CreateRoom(@Req() request) {
     console.log(request.body);
     return this.roomService.addRoom(
@@ -44,6 +44,6 @@ export class RoomController {
   @Get('/member')
   GetRoomMembers(@Req() request) {
     console.log(request.session.access_token);
-    return this.roomService.leaveRoom(request.session.access_token);
+    return this.roomService.getRoomMembers(request.session.access_token);
   }
 }

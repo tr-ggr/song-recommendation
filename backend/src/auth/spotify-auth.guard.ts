@@ -12,6 +12,7 @@ export class SpotifyAuthGuard implements CanActivate {
 
   canActivate(context: ExecutionContext): boolean {
     const request = context.switchToHttp().getRequest();
+    console.log(request.headers);
     const accessToken = request.headers['authorization'].replace('Bearer ', '');
 
     // console.log(accessToken);
