@@ -21,7 +21,6 @@ export default function RoomLoader() {
         });
 
         console.log(res);
-        alert("1");
 
         if (!res.data || !res.data.room) {
           router.push("/dashboard");
