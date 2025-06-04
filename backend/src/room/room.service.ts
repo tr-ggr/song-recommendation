@@ -147,13 +147,18 @@ export class RoomService {
 
   async getRoomMembers(roomName: string) {
     try {
-      let room = this.prisma.room.findUnique({
+      let room = await this.prisma.room.findUnique({
         where: {
           roomName: roomName,
         },
+        include: {
+          members: true,
+        },
       });
 
-      return room.members;
+      console.log(room?.members);
+
+      return room?.members;
     } catch (err) {
       return err;
     }

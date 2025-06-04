@@ -46,53 +46,6 @@ export class RoomGateway implements OnModuleInit {
     return 'Hello world!';
   }
 
-  @SubscribeMessage('create_room')
-  async handleCreateRoom(client: any, payload: any) {
-    const parsedPayload = JSON.parse(payload);
-    console.log(parsedPayload);
-
-    await this.server
-      .in(client.handshake.auth.token)
-      .socketsJoin(parsedPayload.roomName);
-
-    let response = await this.roomService.addRoom(
-      parsedPayload.roomName,
-      client.handshake.auth.token,
-    );
-
-    await this.server.emit('create_room', {
-      msg: 'Create Room Status',
-      response: response,
-      // rooms: await this.roomService.getAllRooms(),
-    });
-  }
-
-  @SubscribeMessage('join_room')
-  async handleJoinRoom(client: any, payload: any) {
-    const parsedPayload = JSON.parse(payload);
-    console.log(parsedPayload);
-
-    let res = await this.roomService.joinRoom(
-      parsedPayload.roomName,
-      client.handshake.auth.token,
-    );
-
-    if (res) {
-      await this.server
-        .in(client.handshake.auth.token)
-        .socketsJoin(parsedPayload.roomName);
-      await this.server.to(parsedPayload.roomName).emit('join_room', {
-        msg: 'Join Room Status',
-        response: res,
-      });
-    } else {
-      await this.server.emit('join_room', {
-        msg: 'Join Room Status',
-        response: 'Room does not exists!',
-      });
-    }
-  }
-
   // @SubscribeMessage('send_song_suggestion')
   // async handleSendSongSuggestion(client: any, payload: any) {
   //   const parsedPayload = JSON.parse(payload);
